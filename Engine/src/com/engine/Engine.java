@@ -8,6 +8,7 @@ import com.boot.Module;
 import com.engine.bean.Rule;
 import com.engine.jni.V8JNI;
 import com.engine.tools.RuleFileUtils;
+import com.engine.transformer.ClassesTransformer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -27,42 +28,19 @@ public class Engine implements Module {
 //		System.out.println(" CLASSLOADER: " + this.getClass().getClassLoader().toString());
 //		this.getClass().getClassLoader().loadClass("com.fasterxml.jackson.databind.ObjectMapper");
 
-		/* 不用线程的方式 */
 		V8JNI v8jni = V8JNI.getInstance();
 		rulePathsList = RuleFileUtils.getRuleFilePaths(ruleFilesStorePath);
-//		json = ParseRule.getInstance().getJSON(rulePathsList.toArray(new String[rulePathsList.size()]));
 		json = v8jni.parseRules(rulePathsList.toArray(new String[rulePathsList.size()]));
 		System.out.println("JSON: " + json);
 		ObjectMapper mapper = new ObjectMapper();
 		rules = mapper.readValue(json, new TypeReference<List<Rule>>() {
 		});
-
-		/* 线程是初尝试 */
-//		Thread parse2json = new Thread(new Runnable() {
-//			@Override
-//			public void run() {
-//				rulePathsList = RuleFileUtils.getRuleFilePaths(ruleFilesStorePath);
-//				json = ParseRule.getInstance().getJSON(rulePathsList.toArray(new String[rulePathsList.size()]));
-//				try {
-//					Thread.sleep(1000);
-//				} catch (InterruptedException e) {
-//					// TODO Auto-generated catch block
-//					e.printStackTrace();
-//				}
-//			}
-//		});
-//		parse2json.start();
-//		parse2json.join();
-//		Thread parseRule = new Thread(new Runnable() {
-//			@Override
-//			public void run() {
-//				ParseRule.getInstance().mapRuleObj(json, rules, inst);
-//			}
-//		});
-//		parseRule.start();
-//		parseRule.join();
-
 		System.out.println("RULES in main: " + rules);
+		if (rules != null && rules.size() > 0) {
+			for (Rule rule : rules) {
+				new ClassesTransformer(rule, inst).retransform();
+			}
+		}
 		System.out.println("OVER");
 	}
 
