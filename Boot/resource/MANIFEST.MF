@@ -1,0 +1,7 @@
+Manifest-Version: 1.0
+Agent-Class: com.boot.Agent
+Premain-Class: com.boot.Agent
+Can-Redefine-Classes: true
+Can-Retransform-Classes: true
+Class-Path: IAST-AgentEngine.jar
+
