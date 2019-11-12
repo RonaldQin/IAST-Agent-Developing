@@ -72,9 +72,10 @@ public class MySQLInjectionRule extends AbstractRule {
 //		
 		try {
 //			dealMethod.addLocalVariable("taskCheck", pool.get(Thread.class.getCanonicalName()));
-//			dealMethod.addLocalVariable("checkResult", pool.get(String.class.getCanonicalName()));
+			dealMethod.addLocalVariable("checkResult", pool.get(String.class.getCanonicalName()));
 			code_buffer.append("System.out.println(\"CHECKER POINT@@@@\");");
-			code_buffer.append("V8JNI.getInstance().execInterpreter(\"\");");
+			code_buffer.append("checkResult = V8JNI.getInstance().execInterpreter(\"return \\\"HELLO WORLD!\\\";\");"); // OK
+			code_buffer.append("System.out.println(checkResult);");
 //			code_buffer.append("V8JNI.getInstance().assignChecker(\"" + getChecker() + "\");");
 //			code_buffer.append("taskCheck = new Thread(new RR(\"" + getChecker() + "\"));");
 //			code_buffer.append("taskCheck.start();");
@@ -83,7 +84,7 @@ public class MySQLInjectionRule extends AbstractRule {
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-//		System.out.println("【Source】" + code_buffer.toString());
+		System.out.println("【Source】" + code_buffer.toString());
 		return code_buffer.toString();
 	}
 }

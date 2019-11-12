@@ -6,7 +6,7 @@
 // Description : Hello World in C++, Ansi-style
 //============================================================================
 
-// g++ -L/home/lace/Documents/opensource/v8/out.gn/x64.release.sample/obj -lssl -shared -pthread -o "libv8_parse_rules.so"  parse_rules.o   -lv8_monolith
+// g++ -L/home/lace/Documents/opensource/v8/out.gn/x64.release.sample/obj -lssl -shared -pthread -o "libv8v8-parser.so"  v8-parser.o   -lv8_monolith
 
 #include <iostream>
 #include <stdio.h>
@@ -53,9 +53,9 @@ JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_execInterpreter
   (JNIEnv * env, jobject obj, jstring code) {
 	const char * source = env->GetStringUTFChars(code, NULL);
 	printf("cstr: ----- %s\n", source);
-//	char * exec_res = execV8interpreter(source);
-//	return env->NewStringUTF(exec_res);
-	return env->NewStringUTF("");
+//	char * exec_res = execV8interpreter(source); /// TODO: BUG POINT !!!! <-----
+	return env->NewStringUTF(source);
+//	return env->NewStringUTF("");
 }
 
 /**
