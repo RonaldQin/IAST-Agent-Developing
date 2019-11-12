@@ -27,6 +27,7 @@ public class Engine implements Module {
 //		System.out.println(" CLASSLOADER: " + this.getClass().getClassLoader().toString());
 //		this.getClass().getClassLoader().loadClass("com.fasterxml.jackson.databind.ObjectMapper");
 
+		/* 不用线程的方式 */
 		V8JNI v8jni = V8JNI.getInstance();
 		rulePathsList = RuleFileUtils.getRuleFilePaths(ruleFilesStorePath);
 //		json = ParseRule.getInstance().getJSON(rulePathsList.toArray(new String[rulePathsList.size()]));
@@ -36,6 +37,7 @@ public class Engine implements Module {
 		rules = mapper.readValue(json, new TypeReference<List<Rule>>() {
 		});
 
+		/* 线程是初尝试 */
 //		Thread parse2json = new Thread(new Runnable() {
 //			@Override
 //			public void run() {
