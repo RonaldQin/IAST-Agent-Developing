@@ -34,7 +34,38 @@ char * parse_rules(char * rules[] , jsize);
 char * execV8interpreter(const char *);
 JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_parseRules(JNIEnv *, jobject, jobjectArray);
 JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_execInterpreter(JNIEnv *, jobject, jstring);
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_initV8(JNIEnv *, jobject);
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_completeV8(JNIEnv *, jobject);
 
+std::unique_ptr<v8::Platform> platform;
+v8::Isolate::CreateParams create_params;
+v8::Isolate * isolate;
+
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_initV8(JNIEnv *, jobject) {
+	printf("C init v8....");
+	// Initialize V8.
+	v8::V8::InitializeICUDefaultLocation("js"); // or transmit parameter: argv[0]
+	v8::V8::InitializeExternalStartupData("js"); // or transmit parameter: argv[0]
+	platform = v8::platform::NewDefaultPlatform();
+	v8::V8::InitializePlatform(platform.get());
+	v8::V8::Initialize();
+
+	// Create a new Isolate and make it the current one.
+	create_params.array_buffer_allocator =
+			v8::ArrayBuffer::Allocator::NewDefaultAllocator();
+	isolate = v8::Isolate::New(create_params);
+}
+
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_completeV8(JNIEnv *, jobject) {
+	printf("c finish v8...");
+	// Dispose the isolate and tear down V8.
+	isolate->Dispose();
+	v8::V8::Dispose();
+	v8::V8::ShutdownPlatform();
+	delete create_params.array_buffer_allocator;
+}
+
+// TODO: ....
 JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_parseRules
   (JNIEnv * env, jobject obj, jobjectArray files) {
 	jsize count = env->GetArrayLength(files);
@@ -49,12 +80,11 @@ JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_parseRules
 	return env->NewStringUTF(result);
 }
 
-JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_execInterpreter
-  (JNIEnv * env, jobject obj, jstring code) {
+JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_execInterpreter(JNIEnv * env, jobject obj, jstring code) {
 	const char * source = env->GetStringUTFChars(code, NULL);
-	printf("cstr: ----- %s\n", source);
-//	char * exec_res = execV8interpreter(source); /// TODO: BUG POINT !!!! <-----
-	return env->NewStringUTF(source);
+	printf("  ---> new cstr: ----- %s\n", source);
+	char * exec_res = execV8interpreter(source); /// TODO: BUG POINT !!!! <-----
+	return env->NewStringUTF(exec_res);
 //	return env->NewStringUTF("");
 }
 
@@ -65,128 +95,112 @@ char * parse_rules(char * rulePaths[], jsize count) {
 	if (count <= 0) {
 		return NULL;
 	}
-	// Initialize V8.
-	v8::V8::InitializeICUDefaultLocation("js"); // or transmit parameter: argv[0]
-	v8::V8::InitializeExternalStartupData("js"); // or transmit parameter: argv[0]
-	std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
-	v8::V8::InitializePlatform(platform.get());
-	v8::V8::Initialize();
-
-	// Create a new Isolate and make it the current one.
-	v8::Isolate::CreateParams create_params;
-	create_params.array_buffer_allocator =
-			v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-	v8::Isolate *isolate = v8::Isolate::New(create_params);
 
 	char * parsed_result = NULL;
+	v8::Isolate::Scope isolate_scope(isolate);
+	// Create a stack-allocated handle scope.
+	v8::HandleScope handle_scope(isolate);
 
-	{
-		v8::Isolate::Scope isolate_scope(isolate);
-		// Create a stack-allocated handle scope.
-		v8::HandleScope handle_scope(isolate);
+	// 在JavaScript中添加Debug输出函数。
+	v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
+	global->Set(
+			v8::String::NewFromUtf8(isolate, "print",
+					v8::NewStringType::kNormal).ToLocalChecked(),
+			v8::FunctionTemplate::New(isolate, Print));
+	global->Set(
+			v8::String::NewFromUtf8(isolate, "load",
+					v8::NewStringType::kNormal).ToLocalChecked(),
+			v8::FunctionTemplate::New(isolate, Load));
 
-		// 在JavaScript中添加Debug输出函数。
-		v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
-		global->Set(
-				v8::String::NewFromUtf8(isolate, "print",
-						v8::NewStringType::kNormal).ToLocalChecked(),
-				v8::FunctionTemplate::New(isolate, Print));
-		global->Set(
-				v8::String::NewFromUtf8(isolate, "load",
-						v8::NewStringType::kNormal).ToLocalChecked(),
-				v8::FunctionTemplate::New(isolate, Load));
+	// Create a new context.
+	v8::Local<v8::Context> context = v8::Context::New(isolate, NULL,
+			global);
+	// Enter the context from compiling and running the JavaScript.
+	v8::Context::Scope context_scope(context);
 
-		// Create a new context.
-		v8::Local<v8::Context> context = v8::Context::New(isolate, NULL,
-				global);
-		// Enter the context from compiling and running the JavaScript.
-		v8::Context::Scope context_scope(context);
+	v8::Local<v8::String> source;
+	v8::Local<v8::Script> script;
+	v8::Local<v8::Value> result;
 
-		v8::Local<v8::String> source;
-		v8::Local<v8::Script> script;
-		v8::Local<v8::Value> result;
-
-		// TODO: 提前加载JS规则的公有脚本！！！
-		source = ReadFile(isolate, "/home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/init/base.js").ToLocalChecked();
+	// TODO: 提前加载JS规则的公有脚本！！！
+	source = ReadFile(isolate, "/home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/init/base.js").ToLocalChecked();
+	script = v8::Script::Compile(context, source).ToLocalChecked();
+	result = script->Run(context).ToLocalChecked();
+	/* 加载定义的JS规则脚本 */
+	for (int i = 0; i < count; i++) {
+		source = ReadFile(isolate, rulePaths[i]).ToLocalChecked();
+		v8::String::Utf8Value utf8(isolate, source);
 		script = v8::Script::Compile(context, source).ToLocalChecked();
 		result = script->Run(context).ToLocalChecked();
-		/* 加载定义的JS规则脚本 */
-		for (int i = 0; i < count; i++) {
-			source = ReadFile(isolate, rulePaths[i]).ToLocalChecked();
-			v8::String::Utf8Value utf8(isolate, source);
-			script = v8::Script::Compile(context, source).ToLocalChecked();
-			result = script->Run(context).ToLocalChecked();
-		}
-
-		// 保存v8解析所有JS规则脚本后的返回结果
-		parsed_result = (char *) malloc(strlen(*v8::String::Utf8Value(isolate, result)) * sizeof(char) + 1);
-		strcpy(parsed_result, *v8::String::Utf8Value(isolate, result));
 	}
-	// Dispose the isolate and tear down V8.
-	isolate->Dispose();
-	v8::V8::Dispose();
-	v8::V8::ShutdownPlatform();
-	delete create_params.array_buffer_allocator;
+
+	// 保存v8解析所有JS规则脚本后的返回结果
+	parsed_result = (char *) malloc(strlen(*v8::String::Utf8Value(isolate, result)) * sizeof(char) + 1);
+	strcpy(parsed_result, *v8::String::Utf8Value(isolate, result));
 
 	return parsed_result;
 }
 
-/**
- * 执行V8解释器。
- */
-char * execV8interpreter(const char * code) {
-	// Initialize V8.
+void initV8() {
+	printf("INIT V8!!!");
 	v8::V8::InitializeICUDefaultLocation("js"); // or transmit parameter: argv[0]
 	v8::V8::InitializeExternalStartupData("js"); // or transmit parameter: argv[0]
-	std::unique_ptr<v8::Platform> platform = v8::platform::NewDefaultPlatform();
+	platform = v8::platform::NewDefaultPlatform();
 	v8::V8::InitializePlatform(platform.get());
 	v8::V8::Initialize();
-
-	// Create a new Isolate and make it the current one.
-	v8::Isolate::CreateParams create_params;
 	create_params.array_buffer_allocator =
 			v8::ArrayBuffer::Allocator::NewDefaultAllocator();
-	v8::Isolate *isolate = v8::Isolate::New(create_params);
+	isolate = v8::Isolate::New(create_params);
+}
 
-	char * result_str = NULL;
-	{
-		v8::Isolate::Scope isolate_scope(isolate);
-		// Create a stack-allocated handle scope.
-		v8::HandleScope handle_scope(isolate);
-		// 在JavaScript中添加Debug输出函数。
-		v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
-		global->Set(
-				v8::String::NewFromUtf8(isolate, "print",
-						v8::NewStringType::kNormal).ToLocalChecked(),
-				v8::FunctionTemplate::New(isolate, Print));
-		global->Set(
-				v8::String::NewFromUtf8(isolate, "load",
-						v8::NewStringType::kNormal).ToLocalChecked(),
-				v8::FunctionTemplate::New(isolate, Load));
-
-		// Create a new context.
-		v8::Local<v8::Context> context = v8::Context::New(isolate, NULL,
-				global);
-		// Enter the context from compiling and running the JavaScript.
-		v8::Context::Scope context_scope(context);
-
-		v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, code, v8::NewStringType::kNormal).ToLocalChecked();
-		v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
-		v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
-		result_str = (char *) malloc(strlen(*v8::String::Utf8Value(isolate, result)) * sizeof(char) + 1);
-		strcpy(result_str, *v8::String::Utf8Value(isolate, result));
-	}
-
-	// Dispose the isolate and tear down V8.
+void finishV8invoke() {
+	printf("FINISH V8!!!");
 	isolate->Dispose();
 	v8::V8::Dispose();
 	v8::V8::ShutdownPlatform();
 	delete create_params.array_buffer_allocator;
+}
+
+char * execV8interpreter(const char * code) {
+	printf(" entry --> %s\n", code);
+	v8::Locker locker(isolate);
+	char * result_str = NULL;
+	v8::Isolate::Scope isolate_scope(isolate);
+	// Create a stack-allocated handle scope.
+	v8::HandleScope handle_scope(isolate);
+//	// 在JavaScript中添加Debug输出函数。
+	v8::Local<v8::ObjectTemplate> global = v8::ObjectTemplate::New(isolate);
+	global->Set(
+			v8::String::NewFromUtf8(isolate, "print",
+					v8::NewStringType::kNormal).ToLocalChecked(),
+			v8::FunctionTemplate::New(isolate, Print));
+	global->Set(
+			v8::String::NewFromUtf8(isolate, "load",
+					v8::NewStringType::kNormal).ToLocalChecked(),
+			v8::FunctionTemplate::New(isolate, Load));
+	// Create a new context.
+	v8::Local<v8::Context> context = v8::Context::New(isolate, NULL,
+					global);
+	v8::Context::Scope context_scope(context);
+	v8::Local<v8::String> source = v8::String::NewFromUtf8(isolate, code, v8::NewStringType::kNormal).ToLocalChecked();
+	v8::Local<v8::Script> script = v8::Script::Compile(context, source).ToLocalChecked();
+	v8::Local<v8::Value> result = script->Run(context).ToLocalChecked();
+	result_str = (char *) malloc(strlen(*v8::String::Utf8Value(isolate, result)) * sizeof(char) + 1);
+	strcpy(result_str, *v8::String::Utf8Value(isolate, result));
 	return result_str;
 }
 
 int main() {
-	cout << "!!!Hello World!!!" << endl; // prints !!!Hello World!!!
+	initV8();
+	char * source1 = "var a = 1; print('first invoke!');";
+	printf("EXEC RESULT: %s\n", execV8interpreter(source1));
+	printf("Test v8 invoke：\n");
+	char * source2 = "var c = function() { print(\'Hello world!\'); return true; }; c.call();";
+	printf("EXEC RESULT: %s\n", execV8interpreter(source2));
+//	ExecuteString(isolate,
+//			v8::String::NewFromUtf8(isolate, source2, v8::NewStringType::kNormal).ToLocalChecked(),
+//			v8::String::NewFromUtf8(isolate, "js", v8::NewStringType::kNormal).ToLocalChecked(), true, false);
+	finishV8invoke();
 	return 0;
 }
 

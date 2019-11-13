@@ -5,6 +5,7 @@ public class V8JNI {
 	private static V8JNI instance;
 
 	private V8JNI() {
+		this.initV8();
 	}
 
 	public static V8JNI getInstance() {
@@ -18,9 +19,18 @@ public class V8JNI {
 		return instance;
 	}
 
+	public native void initV8();
+
+	public native void completeV8();
+
 	public native String parseRules(String[] ruleFilePaths);
 
 	public native String execInterpreter(String code);
+
+	public static void main(String[] args) {
+		String res = new V8JNI().execInterpreter("var a = 111");
+		System.out.println(res);
+	}
 
 	static {
 		System.load(

@@ -52,35 +52,24 @@ public class MySQLInjectionRule extends AbstractRule {
 		pool.importPackage(this.getClass().getCanonicalName());
 		pool.importPackage(V8JNI.class.getCanonicalName());
 		StringBuffer code_buffer = new StringBuffer("");
-//
-////		Thread taskCheck = new Thread(new Runnable() {
-////
-////			@Override
-////			public void run() {
-////				V8JNIService.getInstance().assignChecker(
-////						"function(sql) {			print(\"in checker function!!!\");			return true;		}");
-////				
-////			}
-////		});
-////		taskCheck.start();
-////		try {
-////			taskCheck.join();
-////		} catch (InterruptedException e1) {
-////			// TODO Auto-generated catch block
-////			e1.printStackTrace();
-////		}
-//		
 		try {
 //			dealMethod.addLocalVariable("taskCheck", pool.get(Thread.class.getCanonicalName()));
 			dealMethod.addLocalVariable("checkResult", pool.get(String.class.getCanonicalName()));
-			code_buffer.append("System.out.println(\"CHECKER POINT@@@@\");");
-			code_buffer.append("checkResult = V8JNI.getInstance().execInterpreter(\"return \\\"HELLO WORLD!\\\";\");"); // OK
-			code_buffer.append("System.out.println(checkResult);");
+			code_buffer.append("System.out.println(\"CHECKER POINT NEWNEWNEW\");");
+			code_buffer.append("checkResult = V8JNI.getInstance().execInterpreter(\"print('transmit checker!!!')\");"); // OK
+																														// //
+																														// var
+																														// str
+																										// =
+																										// 'BUG BUG
+																							// WORLD!';
+			code_buffer.append("System.out.println(\"END CHECKER POINT ....\" + checkResult);");
 //			code_buffer.append("V8JNI.getInstance().assignChecker(\"" + getChecker() + "\");");
 //			code_buffer.append("taskCheck = new Thread(new RR(\"" + getChecker() + "\"));");
 //			code_buffer.append("taskCheck.start();");
 //			code_buffer.append("try {taskCheck.join();} catch (InterruptedException e) {e.printStackTrace();}");
 //			code_buffer.append("System.out.println(RR.res);");
+
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

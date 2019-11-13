@@ -9,6 +9,22 @@ extern "C" {
 #endif
 /*
  * Class:     com_engine_jni_V8JNI
+ * Method:    initV8
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_initV8
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_engine_jni_V8JNI
+ * Method:    completeV8
+ * Signature: ()V
+ */
+JNIEXPORT void JNICALL Java_com_engine_jni_V8JNI_completeV8
+  (JNIEnv *, jobject);
+
+/*
+ * Class:     com_engine_jni_V8JNI
  * Method:    parseRules
  * Signature: ([Ljava/lang/String;)Ljava/lang/String;
  */

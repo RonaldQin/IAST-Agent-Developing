@@ -36,11 +36,9 @@ public class Engine implements Module {
 		rules = mapper.readValue(json, new TypeReference<List<Rule>>() {
 		});
 		System.out.println("RULES in main: " + rules);
-		if (rules != null && rules.size() > 0) {
-			for (Rule rule : rules) {
-				new ClassesTransformer(rule, inst).retransform();
-			}
-		}
+
+		new ClassesTransformer(rules, inst).retransform();
+
 		System.out.println("OVER");
 	}
 
