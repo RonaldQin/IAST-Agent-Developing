@@ -2,7 +2,8 @@ Manifest-Version: 1.0
 Module-Name: engine
 Module-Class: com.engine.Engine
 Class-Path: /mnt/hgfs/libraries/jboss-javassist-javassist-5a796e1/javassist.jar 
- /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-AgentEngine/lib/jackson-annotations-2.9.9.jar 
- /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-AgentEngine/lib/jackson-core-2.9.9.jar 
- /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-AgentEngine/lib/jackson-databind-2.9.9.jar 
+ /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/lib/jackson-annotations-2.9.9.jar 
+ /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/lib/jackson-core-2.9.9.jar 
+ /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/lib/jackson-databind-2.9.9.jar 
+ /home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/Engine/lib/yuicompressor-2.4.8.jar 
 

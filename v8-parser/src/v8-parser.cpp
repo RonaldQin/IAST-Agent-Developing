@@ -82,10 +82,8 @@ JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_parseRules
 
 JNIEXPORT jstring JNICALL Java_com_engine_jni_V8JNI_execInterpreter(JNIEnv * env, jobject obj, jstring code) {
 	const char * source = env->GetStringUTFChars(code, NULL);
-	printf("  ---> new cstr: ----- %s\n", source);
-	char * exec_res = execV8interpreter(source); /// TODO: BUG POINT !!!! <-----
+	char * exec_res = execV8interpreter(source);
 	return env->NewStringUTF(exec_res);
-//	return env->NewStringUTF("");
 }
 
 /**
@@ -162,7 +160,6 @@ void finishV8invoke() {
 }
 
 char * execV8interpreter(const char * code) {
-	printf(" entry --> %s\n", code);
 	v8::Locker locker(isolate);
 	char * result_str = NULL;
 	v8::Isolate::Scope isolate_scope(isolate);

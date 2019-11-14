@@ -13,7 +13,7 @@ addRule({
 			"com.mysql.jdbc.StatementImpl" : {
 				"executeQuery" : {
 					"insert_GetExecutedSQL" : insert_before,
-					"insert_addChecker" : insert_after /* 添加 Checker */
+					"insert_addChecker" : insert_after /* 添加 Checker 检测逻辑 */
 				}
 			},
 //			"com.mariadb.jdbc.MariaDbStatement" : {
@@ -37,7 +37,19 @@ addRule({
 //				}
 //			}
 		},
-		"checker" : function() {
-			return true;
+		"checker" : function(sql) {
+			/*
+			 * 测试数据：
+			 * SELECT * FROM vuln WHERE id = 1 or 1=1 --
+			 * SELECT * FROM vuln WHERE id = 1
+			 * 
+			 * "\\b(and|exec|insert|select|drop|grant|alter|delete|update|count|chr|mid|master|truncate|char|declare|or)\\b|(\\*|;|\\+|'|%)"
+			 */
+			print("--> exec sql: " + sql); // 执行的sql
+			var rule = "/(\%27)|(’)|(--)|(\%23)|(#)/ix";
+			if (sql.search(rule) != -1) {
+				return "存在！";
+			}
+			return "不存在。";
 		}
 })

@@ -1,9 +1,12 @@
 package com.engine.rule;
 
+import java.io.StringReader;
+import java.io.StringWriter;
 import java.lang.reflect.Method;
 
 import com.boot.ModuleLoader;
 import com.engine.bean.Rule;
+import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
 import javassist.ClassClassPath;
 import javassist.ClassPool;
@@ -59,6 +62,18 @@ public abstract class AbstractRule {
 	}
 
 	public void setChecker(String checker) {
+		/* 压缩JS代码 */
+		StringWriter result = new StringWriter();
+		try {
+			JavaScriptCompressor compressor = new JavaScriptCompressor(new StringReader(checker), null);
+			compressor.compress(result, -1, true, false, false, false);
+			result.flush();
+		} catch (Exception e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		checker = result.toString().replaceAll("\"", "\\\\\""); // 把传递的checker字符串中的双引号进行转义
+//		System.out.println("set checker: ###" + checker + "###"); //
 		this.checker = checker;
 	}
 
@@ -107,4 +122,11 @@ public abstract class AbstractRule {
 	}
 
 	public abstract String insert_addChecker();
+
+	public abstract String transmit_check_params();
+
+//	public static void main(String[] args) {
+//		String str = "function(a){print(\"exec sql: \"+a);return true}";
+//		System.out.println(str.replaceAll("\"", "\\\\\""));
+//	}
 }

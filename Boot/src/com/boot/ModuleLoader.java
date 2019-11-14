@@ -34,6 +34,7 @@ public class ModuleLoader {
 			systemClassLoader = systemClassLoader.getParent();
 		}
 		moduleClassLoader = systemClassLoader;
+
 	}
 
 	private ModuleLoader(Instrumentation inst) {

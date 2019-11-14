@@ -13,7 +13,7 @@ var addRule = function(rule) {
 		Rules.push(rule);
 	}
 	if (rule.hasOwnProperty("checker")) {
-		rule.checker = `${rule.checker}`.replace(/\r\n/g, "\\n").replace(/\n/g, "");//.replace("/\"/g", "\\""); // 去掉回车和换行
+		rule.checker = `${rule.checker}`;// .replace(/\r\n/g, "\\n").replace(/\n/g, "");//.replace("/\"/g", "\\""); // 去掉回车和换行
 	}
 	return JSON.stringify(Rules);
 }

@@ -27,11 +27,6 @@ public class V8JNI {
 
 	public native String execInterpreter(String code);
 
-	public static void main(String[] args) {
-		String res = new V8JNI().execInterpreter("var a = 111");
-		System.out.println(res);
-	}
-
 	static {
 		System.load(
 				"/home/lace/Documents/workspace-sts-3.9.10.RELEASE/IAST-Agent-develop/v8-parser/Release/src/libv8v8-parser.so");

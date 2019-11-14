@@ -120,7 +120,7 @@ public class RecordTomcatHttpRequestRule extends AbstractRule {
 			code_buffer.append("httpRequestInfo = HttpRequestHelperStack.pop();");
 			code_buffer.append("if (httpRequestInfo != null) {");
 			code_buffer.append(
-					"	System.out.println(\"[Instrumentation debug information] \" + httpRequestInfo.toString());");
+					"	System.out.println(\"插桩获取的Tomcat HTTP 请求头部信息： \" + httpRequestInfo.toString());");
 			code_buffer.append("}");
 		} catch (CannotCompileException | NotFoundException e) {
 			// TODO Auto-generated catch block
@@ -162,6 +162,12 @@ public class RecordTomcatHttpRequestRule extends AbstractRule {
 
 	@Override
 	public String insert_addChecker() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public String transmit_check_params() {
 		// TODO Auto-generated method stub
 		return null;
 	}

@@ -46,10 +46,8 @@ public class ClassesTransformer implements ClassFileTransformer {
 							}
 							/* 执行插桩规则 */
 							for (Map.Entry<String, Map<String, String>> insertion : instrument.getValue().entrySet()) {
-//						System.out.println(targetClassName + " --- " + insertion.getKey());
 								ruleLogic.changeDealMethod(insertion.getKey()); // 指定要修改的方法
 								for (Map.Entry<String, String> logic : insertion.getValue().entrySet()) { // 遍历插桩逻辑
-//							System.out.println("    " + logic.getKey() + " : " + logic.getValue());
 									ruleLogic.callInsertion(logic.getKey(), logic.getValue()); // 执行插桩动作
 								}
 							}
