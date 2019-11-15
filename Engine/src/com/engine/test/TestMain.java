@@ -9,6 +9,10 @@ public class TestMain {
 		List<String> ls = null;
 		new TestMain().f(ls);
 		System.out.println(ls);
+
+		String secrit = "xxxx";
+		String output = secrit + " hahaha!";
+		System.out.println(output);
 	}
 
 	public void f(List<String> ls) {

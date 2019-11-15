@@ -1,7 +1,5 @@
 package com.engine.rule;
 
-import java.util.Arrays;
-
 import com.engine.bean.HttpRequestHelperStack;
 import com.engine.bean.HttpRequestInfo;
 import com.engine.jni.V8JNI;
@@ -65,7 +63,7 @@ public class MySQLInjectionRule extends AbstractRule {
 			code_buffer
 					.append("System.out.println(\"传递参数： \" + rule_instance.transmit_check_params());");
 			code_buffer.append("checkResult = V8JNI.getInstance().execInterpreter(\"var check = " + getChecker()
-					+ "\\ncheck.call(check, \\\"\" + rule_instance.transmit_check_params() + \"\\\");\");");
+					+ "\\ncheck.call(check, \\\"\" + rule_instance.transmit_check_params() + \"\\\");\");"); // TODO: 判断传递给checker的parameter是否为空
 			code_buffer.append("System.out.println(\"检测MySQL执行的查询语句是否存在SQL注入风险: \" + checkResult);");
 		} catch (Exception e) {
 			e.printStackTrace();
@@ -84,7 +82,7 @@ public class MySQLInjectionRule extends AbstractRule {
 //				+ request.getParameters());
 //		System.out.println("**************************************");
 //		System.out.println(" +++++> parameters ..." + executed_sql);
-		return Arrays.toString(res).replaceAll("(\\[|\\])", "");
+		return formatTransmitParams(res);
 	}
 
 }

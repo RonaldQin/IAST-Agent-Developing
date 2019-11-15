@@ -21,7 +21,13 @@ addRule({
 			"org.apache.catalina.connector.Request" : {
 				"parseParameters" : {
 					"insert_GetMultipartHttpPostParameters" : insert_after
-				}
-			}
+				},
+//				"getParameter" : {
+//					"insert_LableSource" : insert_after
+//				}
+			},
+		},
+		"check" : function() {
+			
 		}
 })

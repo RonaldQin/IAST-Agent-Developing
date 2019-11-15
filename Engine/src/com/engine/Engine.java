@@ -9,6 +9,7 @@ import com.engine.bean.Rule;
 import com.engine.jni.V8JNI;
 import com.engine.tools.RuleFileUtils;
 import com.engine.transformer.ClassesTransformer;
+import com.engine.transformer.test.TestClassTransfomer;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +37,7 @@ public class Engine implements Module {
 		rules = mapper.readValue(json, new TypeReference<List<Rule>>() {
 		});
 		new ClassesTransformer(rules, inst).retransform();
+		new TestClassTransfomer("", inst).retransform();
 
 		System.out.println("OVER");
 	}

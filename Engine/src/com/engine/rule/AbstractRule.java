@@ -3,9 +3,11 @@ package com.engine.rule;
 import java.io.StringReader;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
+import java.util.Arrays;
 
 import com.boot.ModuleLoader;
 import com.engine.bean.Rule;
+import com.engine.bean.StringTypeSource;
 import com.yahoo.platform.yui.compressor.JavaScriptCompressor;
 
 import javassist.ClassClassPath;
@@ -121,8 +123,57 @@ public abstract class AbstractRule {
 		return this.classfileBuffer;
 	}
 
+	public String formatTransmitParams(String[] args) {
+		return Arrays.toString(args).replaceAll("(\\[|\\])", "");
+	}
+
+	/**
+	 * 标记Source点。
+	 * 
+	 * @return
+	 */
+	public String insert_LabelSource() {
+		pool.importPackage(StringTypeSource.class.getCanonicalName());
+
+		StringBuffer code_buffer = new StringBuffer("");
+		try {
+			dealMethod.addLocalVariable("source", pool.get(StringTypeSource.class.getCanonicalName()));
+			code_buffer.append("source = new StringTypeSource($_);");
+//			code_buffer.append("System.out.println(\"Source is: \" + source.toString());");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+
+//		System.out.println("Is insert request getParameters method ...");
+//		code_buffer.append("System.out.println(\"Source value is: \" + $_);");
+
+		return code_buffer.toString();
+	}
+
+	public String insert_transmitAllTaint() {
+		pool.importPackage(StringTypeSource.class.getCanonicalName());
+		StringBuffer code_buffer = new StringBuffer("");
+		try {
+			dealMethod.addLocalVariable("mayBeTaint", pool.get("java.lang.Boolean"));
+			code_buffer.append("System.out.println(\"All parameters: \" + $1);");
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		return code_buffer.toString();
+	}
+
+	/**
+	 * 插桩添加检测规则逻辑。
+	 * 
+	 * @return
+	 */
 	public abstract String insert_addChecker();
 
+	/**
+	 * 添加需要传递给检测规则逻辑的实际参数。
+	 * 
+	 * @return
+	 */
 	public abstract String transmit_check_params();
 
 //	public static void main(String[] args) {

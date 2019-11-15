@@ -1,1 +1,0 @@
-function(a){print("exec sql: "+a);return true};
